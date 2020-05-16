@@ -1,0 +1,32 @@
+{
+  "name": "cryptoad",
+  "version": "1.0.0",
+  "description": "A cryptocurrency trading algorithm utilizing Shrimpy's Universal API build to linearize random",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tbaumer22/cryptoad.git"
+  },
+  "keywords": [
+    "cryptocurrency",
+    "shrimpy",
+    "crypto",
+    "toad",
+    "algorithm",
+    "trading",
+    "bot"
+  ],
+  "author": "Tate Berenbaum",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tbaumer22/cryptoad/issues"
+  },
+  "homepage": "https://github.com/tbaumer22/cryptoad#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "shrimpy-node": "^0.2.10"
+  }
+}
