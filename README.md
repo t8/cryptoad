@@ -3,3 +3,4 @@ A cryptocurrency trading algorithm utilizing Shrimpy's universal API built to li
 
 TODO:
 - Explain config.json
+- Explain logs
