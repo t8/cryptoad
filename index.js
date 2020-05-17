@@ -15,6 +15,7 @@ let entryAmount,                            // Value of the currency when the bo
     oldValueROT,                            // f'(x)|t-i    --> Previous rate of change of the value of the portfolio
     newValueROT,                            // f'(x)|t      --> Current rate of change of the value of the portfolio
     valueROTROT = Number;                   // f''(x)       --> Rate of change of the rate of change of the value
+let stabilized = false;                     // Boolean value to prevent the bot from re-stabilizing if portfolio is already stable
 
 function initialize() {
     if (process.env.TRAIN) {
@@ -31,7 +32,9 @@ function initialize() {
 }
 
 async function loop() {
-    newValue = await getCurrentPrice();
+    if (!stabilized) {
+        newValue = await getCurrentPrice();
+    }
     newValueROT = (newValue - oldValue) / interval * 1000;
     valueROTROT = (newValueROT - oldValueROT) / interval * 1000;
     // console.log("Old value: " + oldValue);
@@ -49,18 +52,27 @@ async function loop() {
 
     // (measured - true) / true --> Percent error, or in this case, percent change
     var percentChange = ((newValue - (newValue * fee)) - oldValue) / oldValue;
-    if (newValueROT <= 0 && percentChange < 0) {
+    var actionTaken = "nothing";
+    if (percentChange >= 0) {
         // TRADE
-        await trade();
         console.log("CHOOSING TO TRADE");
+
+        await trade();
         interval = parseFloat(process.env.IMAX);
-    } else if (percentChange < parseFloat(process.env.STOP_LOSS_PERCENTAGE)) {
+        actionTaken = "trade";
+        stabilized = false;
+    } else if (newValueROT < 0 && percentChange < parseFloat(process.env.STOP_LOSS_PERCENTAGE)) {
         // STABILIZE and wait until next interval to buy back
-        await stabilize();
         console.log("CHOOSING TO STABILIZE");
+
+        await stabilize();
         interval = parseFloat(process.env.IMAX);
+        actionTaken = "stabilize";
+        stabilized = true;
+    } else {
+        console.log("NO ACTION TAKEN");
     }
-    await logManager.logValue(newValue);
+    await logManager.logValue(newValue, actionTaken);
 
     totalGains += newValue - oldValue;
     oldValue = newValue;

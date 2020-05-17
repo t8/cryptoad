@@ -14,7 +14,7 @@ if (process.env.TRAIN) {
     logPath += '/tradingLogs/log_shrimpy.json';
 }
 
-function logValue(value) {
+function logValue(value, actionTaken) {
     // Verifying file exists and creating it if not
     fs.access(logPath, fs.F_OK, (err) => {
         if (err) {
@@ -34,6 +34,7 @@ function logValue(value) {
         dataPoints.push(
             {
                 portfolioValue: value,
+                action: actionTaken,
                 time: new Date().toJSON()
             });
         fs.writeFile(logPath, JSON.stringify(dataPoints), (err) => {
