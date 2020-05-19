@@ -114,4 +114,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-/src/tradingLogs/log_shrimpy.json
+logs/
+config.js
+consumableData.json
