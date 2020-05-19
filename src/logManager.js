@@ -3,6 +3,8 @@
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
+const dJSON = require('dirty-json');
+
 let logPath = path.resolve(__dirname);
 let dataPoints;
 
@@ -28,7 +30,11 @@ function logValue(value, actionTaken) {
     // Opening file and getting previous data to add to
     fs.readFile(logPath, (err, data) => {
         if (err) throw err;
-        dataPoints = JSON.parse(data);
+        dataPoints = JSON.parse(data.toString());
+        if (dataPoints === undefined) {
+            dataPoints = [];
+        }
+        //console.log(dataPoints);
 
         // Adding the new data point and overriding the previous log file with the updated data
         dataPoints.push(
@@ -43,6 +49,23 @@ function logValue(value, actionTaken) {
     });
 }
 
+function getMostRecentValue() {
+    fs.readFile(logPath, (err, data) => {
+        if (err) throw err;
+        //dataPoints = JSON.parse(data);
+        var dP = dJSON.parse(data);
+        return dP[dP.length - 1].portfolioValue;
+    });
+}
+
+function clearLog() {
+    fs.writeFile(logPath, '[]', function (err) {
+        if (err) throw err;
+    });
+}
+
 module.exports = {
-    logValue
+    logValue,
+    getMostRecentValue,
+    clearLog
 };

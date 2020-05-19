@@ -1,10 +1,9 @@
 // File to manage trading intervals and execute trades
 
 require('dotenv').config();
-const fs = require('fs');
-const trainingManager = require('./src/trainingManager');
-const shrimpyManager = require('./src/shrimpyManager');
-const logManager = require('./src/logManager');
+const trainingManager = require('./trainingManager');
+const shrimpyManager = require('./shrimpyManager');
+const logManager = require('./logManager');
 
 let interval = parseFloat(process.env.IMAX);
 let entryAmount,                            // Value of the currency when the bot started in USD
@@ -15,7 +14,8 @@ let entryAmount,                            // Value of the currency when the bo
     oldValueROT,                            // f'(x)|t-i    --> Previous rate of change of the value of the portfolio
     newValueROT,                            // f'(x)|t      --> Current rate of change of the value of the portfolio
     valueROTROT = Number;                   // f''(x)       --> Rate of change of the rate of change of the value
-let stabilized = false;                     // Boolean value to prevent the bot from re-stabilizing if portfolio is already stable
+let stabilized,                             // Boolean value to prevent the bot from re-stabilizing if portfolio is already stable
+    simulating = false;                     // Boolean value to check whether the bot is simulating
 
 function initialize() {
     if (process.env.TRAIN) {
@@ -27,8 +27,8 @@ function initialize() {
     }
     oldValue = entryAmount;
     oldValueROT = 0;
-    setTimeout(loop, interval * 1000);
-    console.log("Initialized");
+    setTimeout(loop, interval);
+    //console.log("Initialized");
 }
 
 async function loop() {
@@ -51,33 +51,42 @@ async function loop() {
     }
 
     // (measured - true) / true --> Percent error, or in this case, percent change
-    var percentChange = ((newValue - (newValue * fee)) - oldValue) / oldValue;
-    var actionTaken = "nothing";
-    if (percentChange >= 0) {
-        // TRADE
-        console.log("CHOOSING TO TRADE");
+    let percentChange = ((newValue - (newValue * fee)) - oldValue) / oldValue;
+    let actionTaken = "nothing";
+    if (percentChange >= 0 || stabilized || valueROTROT > 0) {
+        // Creating a random chance for the market to be at an increase while stabilized; this would encourage a trade
+        if (Math.random() > 0.5 && stabilized || !stabilized) {
+            // TRADE
+            //console.log("CHOOSING TO TRADE");
 
-        await trade();
-        interval = parseFloat(process.env.IMAX);
-        actionTaken = "trade";
-        stabilized = false;
-    } else if (newValueROT < 0 && percentChange < parseFloat(process.env.STOP_LOSS_PERCENTAGE)) {
+            await trade();
+            interval = parseFloat(process.env.IMAX);
+            actionTaken = "trade";
+            stabilized = false;
+        } else {
+            //console.log("NO ACTION TAKEN");
+        }
+    } else if (newValueROT < 0 && oldValueROT < 0 && percentChange < parseFloat(process.env.STOP_LOSS_PERCENTAGE)) {
         // STABILIZE and wait until next interval to buy back
-        console.log("CHOOSING TO STABILIZE");
+        //console.log("CHOOSING TO STABILIZE");
 
         await stabilize();
         interval = parseFloat(process.env.IMAX);
         actionTaken = "stabilize";
         stabilized = true;
     } else {
-        console.log("NO ACTION TAKEN");
+        //console.log("NO ACTION TAKEN");
     }
     await logManager.logValue(newValue, actionTaken);
 
     totalGains += newValue - oldValue;
     oldValue = newValue;
     oldValueROT = newValueROT;
-    setTimeout(loop, interval * 1000);
+
+    // Only restart this process if a simulation is going on while training or not training at all
+    if (process.env.TRAIN && simulating || !process.env.TRAIN) {
+        setTimeout(loop, interval);
+    }
 }
 
 async function trade() {
@@ -104,8 +113,8 @@ async function stabilize() {
 async function getCurrentPrice() {
     if (process.env.TRAIN) {
         // Generate a value
-        var max = oldValue + (oldValue * .05);
-        var min = oldValue - (oldValue * .05);
+        let max = oldValue + (oldValue * .05);
+        let min = oldValue - (oldValue * .05);
         return Math.random() * (max - min) + min;
     } else {
         // Get value from Shrimpy
@@ -113,4 +122,38 @@ async function getCurrentPrice() {
     }
 }
 
-initialize();
+async function runSimulation() {
+    let potentialStopLossPercentages = [];
+    let bestSetting = {
+        percentage: 0,
+        performance: 0
+    };
+    let currentPercentage = parseFloat(process.env.STOP_LOSS_PERCENTAGE)
+    for (let z = 0; z < 100; z++) {
+        let newPercent = currentPercentage - (0.01 * z);
+        console.log("New percent: " + newPercent)
+        process.env.STOP_LOSS_PERCENTAGE = newPercent;
+        simulating = true;
+        initialize();
+        await new Promise(resolve => setTimeout(resolve, 5 * 60)); // 5 minutes of simulating for each stop-loss percentage
+        simulating = false;
+        potentialStopLossPercentages.push({
+            percentage: newPercent,
+            performance: logManager.getMostRecentValue()
+        });
+        //console.log(potentialStopLossPercentages);
+        //logManager.clearLog();
+    }
+    for (let z = 0; z < 100; z++) {
+        if (potentialStopLossPercentages[z].performance > bestSetting.performance) {
+            bestSetting = potentialStopLossPercentages[z];
+        }
+    }
+    console.log(bestSetting);
+}
+
+if (process.env.TRAIN) {
+    runSimulation();
+} else {
+    initialize();
+}

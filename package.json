@@ -2,9 +2,9 @@
   "name": "cryptoad",
   "version": "1.0.0",
   "description": "A cryptocurrency trading algorithm utilizing Shrimpy's Universal API build to linearize random",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/tbaumer22/cryptoad#readme",
   "dependencies": {
+    "dirty-json": "^0.8.0",
     "dotenv": "^8.2.0",
     "shrimpy-node": "^0.2.10"
   }
