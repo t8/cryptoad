@@ -27,8 +27,6 @@
   },
   "homepage": "https://github.com/tbaumer22/cryptoad#readme",
   "dependencies": {
-    "dirty-json": "^0.8.0",
-    "dotenv": "^8.2.0",
     "shrimpy-node": "^0.2.10"
   }
 }

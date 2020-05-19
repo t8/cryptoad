@@ -86,7 +86,7 @@ class Logger {
     try {
       const logsDirExists = await fileExists(LOGS_DIR_PATH);
       if (!logsDirExists) await mkdir(LOGS_DIR_PATH);
-      this._stream = createWriteStream(this._path, { flags: "a+" });
+      this._stream = createWriteStream(this._path, { flags: "w+" });
     } catch (err) {
       console.error("An error occurred while opening the log file!");
       console.error(err);
