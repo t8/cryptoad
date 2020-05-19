@@ -4,7 +4,8 @@
   "description": "A cryptocurrency trading algorithm utilizing Shrimpy's Universal API build to linearize random",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "prepareData": "node src/prepareData.js"
   },
   "repository": {
     "type": "git",

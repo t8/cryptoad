@@ -3,9 +3,9 @@
 const fee = 0.005;
 
 function trade(amount) {
-    var newAmount, newROT;
-    var potentialBestROT = -10000;
-    var potentialTrades = [];           // Represents the ROT for each different currency on the exchange
+    let newAmount, newROT;
+    let potentialBestROT = -10000;
+    let potentialTrades = [];           // Represents the ROT for each different currency on the exchange
 
     // Populating potential trades with random values between -10 and 10
     for (let i = 0; i < 20; i++) {
