@@ -10,13 +10,13 @@ const fileExists = require("./fileExists");
 
 const LOGS_DIR_PATH = join(__dirname, "..", "..", "logs");
 
-exports.kFileBusy = Symbol.for("cryptopad.logger.fileBusy");
+exports.kFileBusy = Symbol.for("cryptoad.logger.fileBusy");
 
 class Logger {
   constructor(training) {
     this._path = join(
-      LOGS_DIR_PATH,
-      `${training ? "training" : "shrimpy"}.json`,
+        LOGS_DIR_PATH,
+        `${training ? "training" : "shrimpy"}.json`,
     );
 
     this._stream = null;
@@ -33,6 +33,8 @@ class Logger {
       action,
       time: new Date().toJSON(),
     };
+
+    this._lastLine = data;
 
     if (this._fileBusy) {
       this._queue.push(data);
@@ -72,12 +74,12 @@ class Logger {
       this._stream?.end(err => {
         if (err) reject(err);
         writeFile(this._path, "")
-          .then(() => {
-            this._init();
-            this._queue.forEach(item => this._writeJson(item));
-            this._fileBusy = false;
-          })
-          .catch(reject);
+            .then(() => {
+              this._init();
+              this._queue.forEach(item => this._writeJson(item));
+              this._fileBusy = false;
+            })
+            .catch(reject);
       });
     });
   }
@@ -97,7 +99,6 @@ class Logger {
   async _writeJson(data) {
     try {
       const string = JSON.stringify(data);
-      this._lastLine = data;
       return await this._write(`${string}\n`);
     } catch (err) {
       console.error("An error occurred while writing a log!");

@@ -13,7 +13,7 @@ const config = {
   },
   // Whether or not the bot is in training mode.
   training: true,
-  // Speed > value - Wether or not to prioritise speed over value.
+  // Speed > value - Whether or not to prioritise speed over value.
   speedGtValue: true,
   // Percentage decrease in the hour to activate a stop-loss.
   stopLossPercentage: -0.015,

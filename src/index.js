@@ -137,6 +137,7 @@ async function runSimulation() {
     //console.log(potentialStopLossPercentages);
     //logManager.clearLog();
   }
+  console.log(potentialStopLossPercentages);
   for (let z = 0; z < 100; z++) {
     if (potentialStopLossPercentages[z].performance > bestSetting.performance) {
       bestSetting = potentialStopLossPercentages[z];
